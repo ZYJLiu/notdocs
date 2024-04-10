@@ -1,24 +1,22 @@
-// Example from https://beta.reactjs.org/learn
+import { useState } from "react";
+import { Button } from "./ui/button"; // Import the Button component
 
-import { useState } from 'react'
-import styles from './counters.module.css'
-
-function MyButton() {
-  const [count, setCount] = useState(0)
+export default function Counter() {
+  const [count, setCount] = useState(0);
 
   function handleClick() {
-    setCount(count + 1)
+    setCount(count + 1);
   }
 
   return (
     <div>
-      <button onClick={handleClick} className={styles.counter}>
+      <Button
+        className="my-3 px-2 py-1"
+        variant="secondary"
+        onClick={handleClick}
+      >
         Clicked {count} times
-      </button>
+      </Button>
     </div>
-  )
-}
-
-export default function MyApp() {
-  return <MyButton />
+  );
 }
