@@ -125,7 +125,7 @@ const config: DocsThemeConfig = {
   },
   docsRepositoryBase: "https://github.com/ZYJLiu/nextra/tree/main",
   footer: {
-    text: (
+    content: (
       <div>
         <a
           href="https://nextra.site"
@@ -151,7 +151,7 @@ const config: DocsThemeConfig = {
     ),
   },
   editLink: {
-    text: "Help improve this page on GitHub →",
+    content: "Help improve this page on GitHub →",
   },
   feedback: {
     content: "Question? Give us feedback →",

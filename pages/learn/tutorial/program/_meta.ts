@@ -1,8 +1,11 @@
 export default {
-  "sol-transfer": {
-    title: "SOL Transfer",
+  basic: {
+    title: "Basics",
   },
-  token: {
-    title: "Interacting with Tokens",
+  pda: {
+    title: "Program Derived Address",
+  },
+  cpi: {
+    title: "Cross Program Invocation",
   },
 };

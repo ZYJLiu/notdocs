@@ -1,3 +1,4 @@
+// temporary as poc 
 // https://github.com/vercel/swr-site/blob/main/components/blog-index.js
 import { getPagesUnderRoute } from "nextra/context";
 import Link from "next/link";
@@ -8,7 +9,7 @@ export default function GuideIndex({ more = "Read more" }) {
   const { locale } = useRouter();
   const pages = getPagesUnderRoute("/guides");
 
-  return pages.map((page: PageMapItem) => {
+  return pages.map((page) => {
     const localizedRoute =
       locale === page.locale ? page.route : `/${locale}${page.route}`;
 
