@@ -3,7 +3,6 @@
 import { getPagesUnderRoute } from "nextra/context";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { PageMapItem } from "nextra";
 
 export default function GuideIndex({ more = "Read more" }) {
   const { locale } = useRouter();

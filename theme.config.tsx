@@ -49,24 +49,24 @@ const logo = (
 const config: DocsThemeConfig = {
   logo,
   logoLink: "/",
-  useNextSeoProps() {
-    const { asPath } = useRouter();
-    if (asPath !== "/") {
-      return {
-        titleTemplate: "%s – Solana NotDocs",
-      };
-    }
-  },
   head: function useHead() {
-    const { title } = useConfig();
-    const { route } = useRouter();
+    const { frontMatter, title: pageTitle } = useConfig();
+    const { asPath } = useRouter();
+
+    // Dynamic title setup based on the path
+    const title =
+      asPath === "/"
+        ? pageTitle // Use default pageTitle if on the homepage
+        : `${pageTitle} – Solana NotDocs`;
+
     const socialCard =
-      route === "/" || !title
+      asPath === "/" || !pageTitle
         ? "https://nextra.site/og.jpeg"
-        : `https://nextra.site/api/og?title=${title}`;
+        : `https://nextra.site/api/og?title=${encodeURIComponent(pageTitle)}`;
 
     return (
       <>
+        <title>{title}</title>
         <meta name="msapplication-TileColor" content="#fff" />
         <meta name="theme-color" content="#fff" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
