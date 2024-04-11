@@ -123,7 +123,7 @@ const config: DocsThemeConfig = {
       </svg>
     ),
   },
-  docsRepositoryBase: "https://github.com/ZYJLiu/nextra/tree/main",
+  docsRepositoryBase: "https://github.com/ZYJLiu/notdocs/tree/main",
   footer: {
     content: (
       <div>
