@@ -50,6 +50,14 @@ export default {
       sidebar: false,
     },
   },
+  playground: {
+    title: "Playground",
+    type: "page",
+    theme: {
+      layout: "raw",
+      footer: false,
+    },
+  },
   redirect: {
     title: "↗",
     type: "page",
