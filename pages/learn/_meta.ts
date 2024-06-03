@@ -1,12 +1,9 @@
 export default {
   index: {
-    title: "Quick Start",
+    title: "Solana Playground",
   },
   tutorial: {
-    title: "Tutorial",
-    display: "hidden",
-  },
-  "core-concepts": {
-    title: "Core Concepts",
+    title: "Quick Start",
+    // display: "hidden",
   },
 };

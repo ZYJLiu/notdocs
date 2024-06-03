@@ -4,8 +4,10 @@ export default {
   },
   program: {
     title: "Program",
+    // display: "hidden",
   },
   frontend: {
     title: "Frontend",
+    // display: "hidden",
   },
 };

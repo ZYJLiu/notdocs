@@ -29,3 +29,7 @@ img {
   margin-left: auto;
   margin-right: auto;
 }
+
+#comments::part(iframe) {
+  display: none;
+}
