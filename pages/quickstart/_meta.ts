@@ -1,9 +1,5 @@
 export default {
   index: {
-    title: "Solana Playground",
-    display: "hidden",
-  },
-  overview: {
     title: "Overview",
     // display: "hidden",
   },
@@ -17,5 +13,10 @@ export default {
   frontend: {
     title: "Frontend",
     // display: "hidden",
+  },
+  // keeping as reference, to delete
+  playground: {
+    title: "Playground",
+    display: "hidden",
   },
 };
