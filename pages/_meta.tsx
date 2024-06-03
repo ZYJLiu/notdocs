@@ -23,14 +23,14 @@ export default {
   //     },
   //   },
   // },
-  // index: {
-  //   title: "Getting Started",
-  //   type: "page",
-  //   display: "hidden",
-  //   theme: {
-  //     typesetting: "article",
-  //   },
-  // },
+  index: {
+    title: "Getting Started",
+    type: "page",
+    display: "hidden",
+    theme: {
+      typesetting: "article",
+    },
+  },
   quickstart: {
     title: "Quick Start",
     type: "page",
