@@ -45,7 +45,7 @@ export default {
   redirect: {
     title: "↗",
     type: "page",
-    href: "https://solana.com/",
+    href: "https://solana.com/docs",
     newWindow: true,
   },
 };

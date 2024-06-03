@@ -1,4 +1,114 @@
-# Title
+# Solana Account Model
+
+- how data is represented on solana network
+
+- add diagrams
+
+## Accounts
+
+- Program Accounts
+
+- Data Accounts
+
+- use solana playground and explorer as example
+
+- add diagrams to reforce idea
+
+### AccountInfo
+
+- data structure of every account
+
+## Data Accounts
+
+### Wallet Address
+
+```shell filename="Terminal" copy
+solana address
+```
+
+example output:
+
+```shell filename="Output"
+$ solana address
+3z9vL1zjN6qyAFHhHQdWYRTFAcy69pJydkZmSFBKHg1R
+```
+
+```shell filename="Terminal" copy
+solana account <ADDRESS>
+```
+
+for example wallet
+
+```shell filename="Terminal" copy
+solana account 3z9vL1zjN6qyAFHhHQdWYRTFAcy69pJydkZmSFBKHg1R
+```
+
+expected output:
+
+```shell filename="Output"
+$ solana account 3z9vL1zjN6qyAFHhHQdWYRTFAcy69pJydkZmSFBKHg1R
+
+Public Key: 3z9vL1zjN6qyAFHhHQdWYRTFAcy69pJydkZmSFBKHg1R
+Balance: 32.67152584 SOL
+Owner: 11111111111111111111111111111111
+Executable: false
+Rent Epoch: 18446744073709551615
+```
+
+[Solana Explorer Wallet Account](https://explorer.solana.com/address/3z9vL1zjN6qyAFHhHQdWYRTFAcy69pJydkZmSFBKHg1R?cluster=devnet)
+
+- add diagram mapping accountinfo to wallet app ui
+
+## Program Accounts
+
+### Native Program (Built-In)
+
+for example system program
+
+```shell filename="Terminal" copy
+solana account 11111111111111111111111111111111
+```
+
+expected output:
+
+```shell filename="Output"
+$ solana account 11111111111111111111111111111111
+
+Public Key: 11111111111111111111111111111111
+Balance: 0.000000001 SOL
+Owner: NativeLoader1111111111111111111111111111111
+Executable: true
+Rent Epoch: 18446744073709551615
+```
+
+[Solana Explorer System Program](https://explorer.solana.com/address/11111111111111111111111111111111?cluster=devnet)
+
+
+### Custom Program
+
+for example token program
+
+```shell filename="Terminal" copy
+solana account TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb
+```
+
+expected output:
+
+```shell filename="Output"
+$ solana account TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb
+
+Public Key: TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb
+Balance: 0.00114144 SOL
+Owner: BPFLoaderUpgradeab1e11111111111111111111111
+Executable: true
+Rent Epoch: 18446744073709551615
+```
+
+[Solana Explorer Token Program](https://explorer.solana.com/address/TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb?cluster=devnet)
+
+- cover in detail in programs section, only high-level concept here
+
+## Notes
 
 - intro to accounts
 - account info

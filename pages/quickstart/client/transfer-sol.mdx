@@ -1,5 +1,172 @@
-# Title
+import { Callout, Steps } from "nextra/components";
+
+# Transactions and Instructions
+
+- explain transactions and instructions
+
+## Transactions
+
+- message/signature
+- atomic transaction execution, size limit
+
+## Instructions
+
+- explain components of instruction
+- programid, accounts, instruction data
+
+
+## SOL Transfer
+
+- simple SOL transfer
+
+- final code
+
+https://beta.solpg.io/656a0ea7fb53fa325bfd0c3e
+
+
+<Steps>
+
+### Solana Playground
+
+- open solana playground
+- starter code
+
+```ts filename="client.ts"
+import {
+  LAMPORTS_PER_SOL,
+  SystemProgram,
+  Transaction,
+  sendAndConfirmTransaction,
+  Keypair,
+} from "@solana/web3.js";
+
+const connection = pg.connection;
+
+const sender = pg.wallet.keypair;
+const receiver = new Keypair();
+```
+
+### Build Transfer Instruction
+
+```ts filename="client.ts" copy
+const transferAmount = 0.01;
+
+const transferInstruction = SystemProgram.transfer({
+  fromPubkey: sender.publicKey,
+  toPubkey: receiver.publicKey,
+  lamports: transferAmount * LAMPORTS_PER_SOL,
+});
+```
+
+### Add Instruction to Transaction
+
+```ts filename="client.ts" copy
+const transaction = new Transaction().add(transferInstruction);
+```
+
+### Send Transaction
+
+```ts filename="client.ts" copy
+const transactionSignature = await sendAndConfirmTransaction(
+  connection,
+  transaction,
+  [sender]
+);
+```
+
+### Run script
+
+```shell filename="Terminal" copy
+run
+```
+
+</Steps>
+
+
+## Manual SOL Transfer
+
+- manual SOL transfer
+
+https://beta.solpg.io/656a102efb53fa325bfd0c3f
+
+<Steps>
+
+### Solana Playground
+
+- open solana playground
+- starter is previous ending code
+
+### Update Transfer Instruction
+
+replace this:
+
+```ts filename="client.ts" copy
+const transferInstruction = SystemProgram.transfer({
+  fromPubkey: sender.publicKey,
+  toPubkey: receiver.publicKey,
+  lamports: transferAmount * LAMPORTS_PER_SOL,
+});
+```
+
+with this:
+
+```ts filename="client.ts" copy
+// Instruction index for the SystemProgram transfer instruction
+const transferInstructionIndex = 2;
+// Create a buffer for the data to be passed to the transfer instruction
+const instructionData = Buffer.alloc(4 + 8); // uint32 + uint64
+// Write the instruction index to the buffer
+instructionData.writeUInt32LE(transferInstructionIndex, 0);
+// Write the transfer amount to the buffer
+instructionData.writeBigUInt64LE(BigInt(transferAmount * LAMPORTS_PER_SOL), 4);
+
+// Manually create a transfer instruction for transferring SOL from sender to receiver
+const transferInstruction = new TransactionInstruction({
+  keys: [
+    { pubkey: sender.publicKey, isSigner: true, isWritable: true },
+    { pubkey: receiver.publicKey, isSigner: false, isWritable: true },
+  ],
+  programId: SystemProgram.programId,
+  data: instructionData,
+});
+```
+- manually creating the transaction instruction, passing in programid, accounts, data buffer
+
+```ts filename="client.ts"
+// Manually create a transfer instruction for transferring SOL from sender to receiver
+const transferInstruction = new TransactionInstruction({
+  keys: [
+    { pubkey: sender.publicKey, isSigner: true, isWritable: true },
+    { pubkey: receiver.publicKey, isSigner: false, isWritable: true },
+  ],
+  programId: SystemProgram.programId,
+  data: instructionData,
+});
+```
+
+- data buffer is a buffer of bytes we manually create and write to that 
+matches what the transfer instruction on the system program expects
+
+```ts filename="client.ts"
+// Instruction index for the SystemProgram transfer instruction
+const transferInstructionIndex = 2;
+// Create a buffer for the data to be passed to the transfer instruction
+const instructionData = Buffer.alloc(4 + 8); // uint32 + uint64
+// Write the instruction index to the buffer
+instructionData.writeUInt32LE(transferInstructionIndex, 0);
+// Write the transfer amount to the buffer
+instructionData.writeBigUInt64LE(BigInt(transferAmount * LAMPORTS_PER_SOL), 4);
+```
+
+### Run script
+
+```shell filename="Terminal" copy
+run
+```
+
+</Steps>
+
+## Notes
 
 - explain wallet is just system account
-- transfer sol
-- show that default owner is system program
+- transfer sol, both using helper and manually built instruction
