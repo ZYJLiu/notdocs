@@ -43,7 +43,7 @@ export default {
     },
   },
   redirect: {
-    title: "↗",
+    title: "Docs ↗",
     type: "page",
     href: "https://solana.com/docs",
     newWindow: true,

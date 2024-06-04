@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* logo effect */
 .nextra-logo {
   mask-image: linear-gradient(
     60deg,
@@ -34,11 +35,25 @@ img {
   display: none;
 }
 
-
+/* increase page width */
 nav._mx-auto._flex._max-w-\[90rem\] {
   max-width: 100rem !important;
 }
 
+/* increase page width */
 div._mx-auto._flex._max-w-\[90rem\] {
   max-width: 100rem !important;
+}
+
+/* accordion component */
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
+}
+
+/* Nextra Tabs buttons - fix */
+button[id^="headlessui-tabs-tab"] {
+  margin: 0 3px 0 3px;
+  box-shadow: none !important;
 }

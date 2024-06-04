@@ -14,8 +14,11 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@/icons/*": ["components/Icons/*"],
+      "@/icons": ["components/Icons"],
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "components/guide-index.jsx"],

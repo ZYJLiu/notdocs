@@ -1,4 +1,5 @@
-import { Callout, Steps } from "nextra/components";
+import { Steps, Tabs } from "nextra/components";
+import { Accordion, Accordions } from "@/components/Accordion";
 
 # Transactions and Instructions
 
@@ -14,7 +15,6 @@ import { Callout, Steps } from "nextra/components";
 - explain components of instruction
 - programid, accounts, instruction data
 
-
 ## SOL Transfer
 
 - simple SOL transfer
@@ -22,7 +22,6 @@ import { Callout, Steps } from "nextra/components";
 - final code
 
 https://beta.solpg.io/656a0ea7fb53fa325bfd0c3e
-
 
 <Steps>
 
@@ -48,6 +47,10 @@ const receiver = new Keypair();
 
 ### Build Transfer Instruction
 
+<Tabs items={["web3.js", "manual"]}>
+
+<Tabs.Tab>
+
 ```ts filename="client.ts" copy
 const transferAmount = 0.01;
 
@@ -57,6 +60,36 @@ const transferInstruction = SystemProgram.transfer({
   lamports: transferAmount * LAMPORTS_PER_SOL,
 });
 ```
+
+</Tabs.Tab>
+
+<Tabs.Tab>
+
+```ts filename="client.ts" copy
+const transferAmount = 0.01;
+
+// Instruction index for the SystemProgram transfer instruction
+const transferInstructionIndex = 2;
+// Create a buffer for the data to be passed to the transfer instruction
+const instructionData = Buffer.alloc(4 + 8); // uint32 + uint64
+// Write the instruction index to the buffer
+instructionData.writeUInt32LE(transferInstructionIndex, 0);
+// Write the transfer amount to the buffer
+instructionData.writeBigUInt64LE(BigInt(transferAmount * LAMPORTS_PER_SOL), 4);
+
+// Manually create a transfer instruction for transferring SOL from sender to receiver
+const transferInstruction = new TransactionInstruction({
+  keys: [
+    { pubkey: sender.publicKey, isSigner: true, isWritable: true },
+    { pubkey: receiver.publicKey, isSigner: false, isWritable: true },
+  ],
+  programId: SystemProgram.programId,
+  data: instructionData,
+});
+```
+
+</Tabs.Tab>
+</Tabs>
 
 ### Add Instruction to Transaction
 
@@ -70,7 +103,7 @@ const transaction = new Transaction().add(transferInstruction);
 const transactionSignature = await sendAndConfirmTransaction(
   connection,
   transaction,
-  [sender]
+  [sender],
 );
 ```
 
@@ -82,6 +115,15 @@ run
 
 </Steps>
 
+## Notes
+
+- explain wallet is just system account
+- transfer sol, both using helper and manually built instruction
+
+## Test Accordion
+
+<Accordions type="multiple">
+<Accordion title="Accordion">
 
 ## Manual SOL Transfer
 
@@ -130,7 +172,9 @@ const transferInstruction = new TransactionInstruction({
   data: instructionData,
 });
 ```
-- manually creating the transaction instruction, passing in programid, accounts, data buffer
+
+- manually creating the transaction instruction, passing in programid, accounts,
+  data buffer
 
 ```ts filename="client.ts"
 // Manually create a transfer instruction for transferring SOL from sender to receiver
@@ -144,8 +188,8 @@ const transferInstruction = new TransactionInstruction({
 });
 ```
 
-- data buffer is a buffer of bytes we manually create and write to that 
-matches what the transfer instruction on the system program expects
+- data buffer is a buffer of bytes we manually create and write to that matches
+  what the transfer instruction on the system program expects
 
 ```ts filename="client.ts"
 // Instruction index for the SystemProgram transfer instruction
@@ -166,7 +210,20 @@ run
 
 </Steps>
 
-## Notes
+</Accordion>
 
-- explain wallet is just system account
-- transfer sol, both using helper and manually built instruction
+<Accordion title="Accordion2">
+
+```ts filename="client.ts"
+// Instruction index for the SystemProgram transfer instruction
+const transferInstructionIndex = 2;
+// Create a buffer for the data to be passed to the transfer instruction
+const instructionData = Buffer.alloc(4 + 8); // uint32 + uint64
+// Write the instruction index to the buffer
+instructionData.writeUInt32LE(transferInstructionIndex, 0);
+// Write the transfer amount to the buffer
+instructionData.writeBigUInt64LE(BigInt(transferAmount * LAMPORTS_PER_SOL), 4);
+```
+
+</Accordion>
+</Accordions>
