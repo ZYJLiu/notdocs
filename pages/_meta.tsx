@@ -33,7 +33,21 @@ export default {
   },
   quickstart: {
     title: "Quick Start",
-    type: "page",
+    type: "menu",
+    items: {
+      index: {
+        title: "Start Here",
+      },
+      client: {
+        title: "Client",
+      },
+      program: {
+        title: "Program",
+      },
+      frontend: {
+        title: "Frontend",
+      },
+    },
   },
   guides: {
     title: "Guides",
