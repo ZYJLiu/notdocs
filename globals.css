@@ -33,3 +33,12 @@ img {
 #comments::part(iframe) {
   display: none;
 }
+
+
+nav._mx-auto._flex._max-w-\[90rem\] {
+  max-width: 100rem !important;
+}
+
+div._mx-auto._flex._max-w-\[90rem\] {
+  max-width: 100rem !important;
+}

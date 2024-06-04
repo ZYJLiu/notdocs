@@ -1,6 +1,6 @@
 export default {
   index: {
-    title: "Overview",
+    title: "Getting Started",
     // display: "hidden",
   },
   client: {
