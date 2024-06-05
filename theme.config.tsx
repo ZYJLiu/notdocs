@@ -168,6 +168,9 @@ const config: DocsThemeConfig = {
   toc: {
     backToTop: true,
   },
+  nextThemes: {
+    defaultTheme: "dark",
+  },
   // banner: {
   //   dismissible: true,
   //   key: "nextra-banner",

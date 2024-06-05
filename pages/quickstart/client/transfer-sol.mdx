@@ -1,6 +1,7 @@
 import { Steps, Tabs } from "nextra/components";
 import { Accordion, Accordions } from "@/components/Accordion";
 import { RemoteCodeblock, permalinkFetch } from "@/components/remote-codeblock";
+import StackBlitz from "@/components/StackBlitz";
 
 export const urls = [
   "https://github.com/solana-developers/anchor-starter/blob/8964eb13b91c865fc930ee68d2de05786b969e23/01-counter/programs/counter/src/lib.rs#L1-L60",
@@ -273,3 +274,9 @@ instructionData.writeBigUInt64LE(BigInt(transferAmount * LAMPORTS_PER_SOL), 4);
   <summary>Renders on next line</summary>
   <div className="nx-flex nx-justify-center">content</div>
 </details>
+
+<StackBlitz
+  name="/solana-developers/anchor-starter/tree/main/04-frontend"
+  openFile="app/providers.tsx"
+  view="both"
+/>
