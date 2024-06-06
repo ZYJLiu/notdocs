@@ -4,9 +4,15 @@
 
 - add diagrams
 
+- use solpg to demonstrate/ fetch accounts
+
+- use tabs to separate cli / web3.js examples
+
 ## Accounts
 
-- Program Accounts
+- two categories, program / data accounts
+
+- Program Accounts, builtin / custom
 
 - Data Accounts
 
@@ -17,35 +23,136 @@
 ### AccountInfo
 
 - data structure of every account
+- diagram + explain each field
+
+#### Fetch AccountInfo
+
+- example using web3.js
+- swap address to fetch accountinfo for other accounts
+
+https://beta.solpg.io/66608f8ecffcf4b13384d148
+
+```ts filename="client.ts" copy {3} /"11111111111111111111111111111111"/
+import { PublicKey } from "@solana/web3.js";
+
+const address = new PublicKey("11111111111111111111111111111111");
+const accountInfo = await pg.connection.getAccountInfo(address);
+
+console.log(JSON.stringify(accountInfo, null, 2));
+```
+
+<details>
+<summary>Output</summary>
+
+```bash
+Running client...
+  client.ts:
+    {
+  "data": {
+    "type": "Buffer",
+    "data": [
+      115,
+      121,
+      115,
+      116,
+      101,
+      109,
+      95,
+      112,
+      114,
+      111,
+      103,
+      114,
+      97,
+      109
+    ]
+  },
+  "executable": true,
+  "lamports": 1,
+  "owner": "NativeLoader1111111111111111111111111111111",
+  "rentEpoch": 18446744073709552000,
+  "space": 14
+}
+```
+
+</details>
+
+- fetch account info of playground wallet
+
+```ts filename="client.ts" copy
+const address = pg.wallet.publicKey;
+```
+
+```diff
++ const address = pg.wallet.publicKey;
+- const address = new PublicKey("11111111111111111111111111111111");
+```
+
+- publickey does not mean there is an onchain account associated with address
+- generate new keypair, fetch address, return null
+
+```ts filename="client.ts" copy {3} /publicKey/
+import { Keypair } from "@solana/web3.js";
+
+const address = new Keypair().publicKey;
+const accountInfo = await pg.connection.getAccountInfo(address);
+
+console.log(JSON.stringify(accountInfo, null, 2));
+```
+
+<details>
+<summary>Output</summary>
+
+```bash
+Running client...
+  client.ts:
+    null
+```
+
+</details>
 
 ## Data Accounts
 
+- separation of state and executable code
+- 'data accounts', executable false, data field of accountinfo used to store
+  state as byte array
+
 ### Wallet Address
 
-```shell filename="Terminal" copy
+[Solana Explorer Wallet Account](https://explorer.solana.com/address/3z9vL1zjN6qyAFHhHQdWYRTFAcy69pJydkZmSFBKHg1R?cluster=devnet)
+
+- get address of playground wallet
+
+```bash filename="Terminal" copy
 solana address
 ```
 
-example output:
+- for example
 
-```shell filename="Output"
+<details>
+<summary>Output</summary>
+
+```bash
 $ solana address
 3z9vL1zjN6qyAFHhHQdWYRTFAcy69pJydkZmSFBKHg1R
 ```
 
-```shell filename="Terminal" copy
+</details>
+
+- use playground wallet address fetch account data
+
+```bash filename="Terminal" copy
 solana account <ADDRESS>
 ```
 
-for example wallet
-
-```shell filename="Terminal" copy
+```bash filename="Terminal" copy
 solana account 3z9vL1zjN6qyAFHhHQdWYRTFAcy69pJydkZmSFBKHg1R
 ```
 
-expected output:
+<details>
+<summary>Output</summary>
 
-```shell filename="Output"
+```bash
 $ solana account 3z9vL1zjN6qyAFHhHQdWYRTFAcy69pJydkZmSFBKHg1R
 
 Public Key: 3z9vL1zjN6qyAFHhHQdWYRTFAcy69pJydkZmSFBKHg1R
@@ -55,46 +162,59 @@ Executable: false
 Rent Epoch: 18446744073709551615
 ```
 
-[Solana Explorer Wallet Account](https://explorer.solana.com/address/3z9vL1zjN6qyAFHhHQdWYRTFAcy69pJydkZmSFBKHg1R?cluster=devnet)
+</details>
 
 - add diagram mapping accountinfo to wallet app ui
 
+- wallets are accounts owned by system program
+- store 0 bytes of extra data
+- lamport on account = sol balance
+
 ## Program Accounts
 
-### Native Program (Built-In)
+### Native Program (Built In)
 
 for example system program
 
-```shell filename="Terminal" copy
+- notice that wallet is owned by system program, a built in program
+- fetch system program account
+- callout executable true
+
+```bash filename="Terminal" copy
 solana account 11111111111111111111111111111111
 ```
 
-expected output:
+<details>
+<summary>Output</summary>
 
-```shell filename="Output"
+```bash
 $ solana account 11111111111111111111111111111111
 
 Public Key: 11111111111111111111111111111111
-Balance: 0.000000001 SOL
-Owner: NativeLoader1111111111111111111111111111111
+Balance: 0.000000001 SOL Owner:
+NativeLoader1111111111111111111111111111111
 Executable: true
 Rent Epoch: 18446744073709551615
 ```
 
-[Solana Explorer System Program](https://explorer.solana.com/address/11111111111111111111111111111111?cluster=devnet)
+</details>
 
+[Solana Explorer System Program](https://explorer.solana.com/address/11111111111111111111111111111111?cluster=devnet)
 
 ### Custom Program
 
 for example token program
 
-```shell filename="Terminal" copy
+[Solana Explorer Token Program](https://explorer.solana.com/address/TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb?cluster=devnet)
+
+```bash filename="Terminal" copy
 solana account TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb
 ```
 
-expected output:
+<details>
+<summary>Output</summary>
 
-```shell filename="Output"
+```bash
 $ solana account TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb
 
 Public Key: TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb
@@ -104,7 +224,7 @@ Executable: true
 Rent Epoch: 18446744073709551615
 ```
 
-[Solana Explorer Token Program](https://explorer.solana.com/address/TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb?cluster=devnet)
+</details>
 
 - cover in detail in programs section, only high-level concept here
 

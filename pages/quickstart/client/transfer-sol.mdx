@@ -1,15 +1,24 @@
 import { Steps, Tabs } from "nextra/components";
 import { Accordion, Accordions } from "@/components/Accordion";
 import { RemoteCodeblock, permalinkFetch } from "@/components/remote-codeblock";
-import StackBlitz from "@/components/StackBlitz";
 
-export const urls = [
-  "https://github.com/solana-developers/anchor-starter/blob/8964eb13b91c865fc930ee68d2de05786b969e23/01-counter/programs/counter/src/lib.rs#L1-L60",
-  "https://github.com/solana-developers/anchor-starter/blob/8964eb13b91c865fc930ee68d2de05786b969e23/01-counter/tests/counter.ts#L1-L52",
+export const links = [
+  // transfer()
+  "https://github.com/solana-labs/solana/blob/27eff8408b7223bb3c4ab70523f8a8dca3ca6645/programs/system/src/system_processor.rs#L214-L242",
+  // transfer_verified()
+  "https://github.com/solana-labs/solana/blob/27eff8408b7223bb3c4ab70523f8a8dca3ca6645/programs/system/src/system_processor.rs#L182-L212",
+  // create_acount()
+  "https://github.com/solana-labs/solana/blob/27eff8408b7223bb3c4ab70523f8a8dca3ca6645/programs/system/src/system_processor.rs#L145-L180",
+  // allocate_and_assign()
+  "https://github.com/solana-labs/solana/blob/27eff8408b7223bb3c4ab70523f8a8dca3ca6645/programs/system/src/system_processor.rs#L132-L142",
+  // allocate()
+  "https://github.com/solana-labs/solana/blob/27eff8408b7223bb3c4ab70523f8a8dca3ca6645/programs/system/src/system_processor.rs#L70-L110",
+  // assign()
+  "https://github.com/solana-labs/solana/blob/27eff8408b7223bb3c4ab70523f8a8dca3ca6645/programs/system/src/system_processor.rs#L112-L130",
 ];
 
 export async function getStaticProps() {
-  return await permalinkFetch(urls);
+  return await permalinkFetch(links);
 }
 
 # Transactions and Instructions
@@ -126,157 +135,84 @@ run
 
 </Steps>
 
+<Accordions >
+<Accordion title="Source Code - Transfer Instruction">
+
+- transfer function includes a signer check, and then invokes transfer_verified
+
+<RemoteCodeblock permalink={links[0]} />
+
+- transfer_verified includes logic to update the lamport balance of from and to
+  address
+
+<RemoteCodeblock permalink={links[1]} />
+
+</Accordion>
+</Accordions>
+
+## Minimum Rent
+
+- example transfer below minimum rent, tx fails
+
+```ts filename="client.ts" copy
+const transferInstruction = SystemProgram.transfer({
+  fromPubkey: sender.publicKey,
+  toPubkey: receiver.publicKey,
+  lamports: 1, // 1 lamport
+});
+```
+
+<details>
+<summary>Output</summary>
+
+```bash
+Running client...
+  client.ts:
+    Uncaught error: failed to send transaction: Transaction simulation failed: Transaction results in an account (1) with insufficient funds for rent
+```
+
+</details>
+
+- minimum lamports for accountinfo, where data field stores 0 bytes of extra
+  data
+
+```ts filename="client.ts" copy
+// Minimum balance for rent exemption for new account
+const minumumLamports = await connection.getMinimumBalanceForRentExemption(0);
+
+const transferInstruction = SystemProgram.transfer({
+  fromPubkey: sender.publicKey,
+  toPubkey: receiver.publicKey,
+  lamports: minumumLamports,
+});
+```
+
+## Create Account
+
+<Accordions >
+<Accordion title="Source Code - Create Account Instruction">
+
+- create_account function includes checks if the address is already in use,
+- if not, invokes allocate_and_assign and transfer
+
+<RemoteCodeblock permalink={links[2]} />
+
+- allocate_and_assign, invoke allocate and assign
+
+<RemoteCodeblock permalink={links[3]} />
+
+- allocates space to the data field of the account's accountinfo
+
+<RemoteCodeblock permalink={links[4]} />
+
+- assign, sets a new program owner on the account
+
+<RemoteCodeblock permalink={links[5]} />
+
+</Accordion>
+</Accordions>
+
 ## Notes
 
 - explain wallet is just system account
 - transfer sol, both using helper and manually built instruction
-
-## Test Accordion
-
-```ts filename="client.ts" copy
-const transferInstruction = SystemProgram.transfer({
-  fromPubkey: sender.publicKey,
-  toPubkey: receiver.publicKey,
-  lamports: transferAmount * LAMPORTS_PER_SOL,
-});
-```
-
-<Accordions >
-<Accordion title="Accordion">
-
-```ts
-const transferInstruction = SystemProgram.transfer({
-  fromPubkey: sender.publicKey,
-  toPubkey: receiver.publicKey,
-  lamports: transferAmount * LAMPORTS_PER_SOL,
-});
-```
-
-</Accordion>
-</Accordions>
-
-<Accordions type="multiple">
-<Accordion title="Accordion">
-
-## Manual SOL Transfer
-
-- manual SOL transfer
-
-https://beta.solpg.io/656a102efb53fa325bfd0c3f
-
-<Steps>
-
-### Solana Playground
-
-- open solana playground
-- starter is previous ending code
-
-### Update Transfer Instruction
-
-replace this:
-
-```ts filename="client.ts" copy
-const transferInstruction = SystemProgram.transfer({
-  fromPubkey: sender.publicKey,
-  toPubkey: receiver.publicKey,
-  lamports: transferAmount * LAMPORTS_PER_SOL,
-});
-```
-
-with this:
-
-```ts filename="client.ts" copy
-// Instruction index for the SystemProgram transfer instruction
-const transferInstructionIndex = 2;
-// Create a buffer for the data to be passed to the transfer instruction
-const instructionData = Buffer.alloc(4 + 8); // uint32 + uint64
-// Write the instruction index to the buffer
-instructionData.writeUInt32LE(transferInstructionIndex, 0);
-// Write the transfer amount to the buffer
-instructionData.writeBigUInt64LE(BigInt(transferAmount * LAMPORTS_PER_SOL), 4);
-
-// Manually create a transfer instruction for transferring SOL from sender to receiver
-const transferInstruction = new TransactionInstruction({
-  keys: [
-    { pubkey: sender.publicKey, isSigner: true, isWritable: true },
-    { pubkey: receiver.publicKey, isSigner: false, isWritable: true },
-  ],
-  programId: SystemProgram.programId,
-  data: instructionData,
-});
-```
-
-- manually creating the transaction instruction, passing in programid, accounts,
-  data buffer
-
-```ts filename="client.ts"
-// Manually create a transfer instruction for transferring SOL from sender to receiver
-const transferInstruction = new TransactionInstruction({
-  keys: [
-    { pubkey: sender.publicKey, isSigner: true, isWritable: true },
-    { pubkey: receiver.publicKey, isSigner: false, isWritable: true },
-  ],
-  programId: SystemProgram.programId,
-  data: instructionData,
-});
-```
-
-- data buffer is a buffer of bytes we manually create and write to that matches
-  what the transfer instruction on the system program expects
-
-```ts filename="client.ts"
-// Instruction index for the SystemProgram transfer instruction
-const transferInstructionIndex = 2;
-// Create a buffer for the data to be passed to the transfer instruction
-const instructionData = Buffer.alloc(4 + 8); // uint32 + uint64
-// Write the instruction index to the buffer
-instructionData.writeUInt32LE(transferInstructionIndex, 0);
-// Write the transfer amount to the buffer
-instructionData.writeBigUInt64LE(BigInt(transferAmount * LAMPORTS_PER_SOL), 4);
-```
-
-### Run script
-
-```shell filename="Terminal" copy
-run
-```
-
-</Steps>
-
-</Accordion>
-
-<Accordion title="Accordion2">
-
-```ts filename="client.ts"
-// Instruction index for the SystemProgram transfer instruction
-const transferInstructionIndex = 2;
-// Create a buffer for the data to be passed to the transfer instruction
-const instructionData = Buffer.alloc(4 + 8); // uint32 + uint64
-// Write the instruction index to the buffer
-instructionData.writeUInt32LE(transferInstructionIndex, 0);
-// Write the transfer amount to the buffer
-instructionData.writeBigUInt64LE(BigInt(transferAmount * LAMPORTS_PER_SOL), 4);
-```
-
-</Accordion>
-</Accordions>
-
-<RemoteCodeblock permalink={urls[0]} />
-
-<RemoteCodeblock permalink={urls[1]} />
-
-<details>
-  <summary>Renders properly</summary>
-  <div className="nx-flex nx-justify-center">content</div>
-</details>
-
-<details>
-  <summary>Renders on next line</summary>
-  <div className="nx-flex nx-justify-center">content</div>
-</details>
-
-<StackBlitz
-  name="/solana-developers/anchor-starter/tree/main/04-frontend"
-  openFile="app/providers.tsx"
-  view="both"
-/>

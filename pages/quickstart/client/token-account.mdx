@@ -1,5 +1,247 @@
-# Title
+import { Steps, Tabs } from "nextra/components";
+import { Accordion, Accordions } from "@/components/Accordion";
+import { RemoteCodeblock, permalinkFetch } from "@/components/remote-codeblock";
+
+export const links = [
+  // process_initialize_account()
+  "https://github.com/solana-labs/solana-program-library/blob/78da1843fc515e4aa9e18ea48b71d2b903e5e6ea/token/program-2022/src/processor.rs#L130-L211",
+];
+
+export async function getStaticProps() {
+  return await permalinkFetch(links);
+}
+
+# Token Account
 
 - create a token account
 - manually do it
 - use helper to do it
+
+## Create Token Account
+
+https://beta.solpg.io/660ce716cffcf4b13384d010
+
+<Accordions >
+<Accordion title="Final Code">
+
+```ts filename="client.ts" copy
+import {
+  ACCOUNT_SIZE,
+  TOKEN_2022_PROGRAM_ID,
+  createInitializeAccountInstruction,
+  getMinimumBalanceForRentExemptAccount,
+  createMint,
+} from "@solana/spl-token";
+import {
+  Connection,
+  Keypair,
+  SystemProgram,
+  Transaction,
+  clusterApiUrl,
+  sendAndConfirmTransaction,
+} from "@solana/web3.js";
+
+const wallet = pg.wallet;
+const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+
+// Create new mint account
+const mint = await createMint(
+  connection,
+  wallet.keypair, // payer
+  wallet.publicKey, // mint authority
+  wallet.publicKey, // freeze authority
+  2, // decimals
+  new Keypair(), // keypair for mint account
+  null, // confirmOptions
+  TOKEN_2022_PROGRAM_ID,
+);
+
+// Generate keypair to use as address of token account
+const token = Keypair.generate();
+
+// Calculate minimum lamports for space required by token account
+const rentLamports = await getMinimumBalanceForRentExemptAccount(connection);
+
+// Instruction to create new account with space for new token account
+const createAccountInstruction = SystemProgram.createAccount({
+  fromPubkey: wallet.publicKey,
+  newAccountPubkey: token.publicKey,
+  space: ACCOUNT_SIZE,
+  lamports: rentLamports,
+  programId: TOKEN_2022_PROGRAM_ID,
+});
+
+// Instruction to initialize token account
+const initializeAccountInstruction = createInitializeAccountInstruction(
+  token.publicKey, // token account address
+  mint, // mint address
+  wallet.publicKey, // token account owner
+  TOKEN_2022_PROGRAM_ID,
+);
+
+const transaction = new Transaction().add(
+  createAccountInstruction,
+  initializeAccountInstruction,
+);
+
+const transactionSignature = await sendAndConfirmTransaction(
+  connection,
+  transaction,
+  [
+    wallet.keypair, // payer
+    token, // token address keypair
+  ],
+);
+
+console.log(
+  "\nTransaction Signature:",
+  `https://explorer.solana.com/tx/${transactionSignature}?cluster=devnet`,
+);
+
+console.log(
+  "\nToken Account: ",
+  `https://explorer.solana.com/address/${token.publicKey}?cluster=devnet`,
+);
+```
+
+</Accordion>
+</Accordions>
+
+<Steps>
+
+### Starter Code
+
+- open solana playground
+- starter code
+
+```ts filename="client.ts" copy
+import {
+  ACCOUNT_SIZE,
+  TOKEN_2022_PROGRAM_ID,
+  createInitializeAccountInstruction,
+  getMinimumBalanceForRentExemptAccount,
+  createMint,
+} from "@solana/spl-token";
+import {
+  Connection,
+  Keypair,
+  SystemProgram,
+  Transaction,
+  clusterApiUrl,
+  sendAndConfirmTransaction,
+} from "@solana/web3.js";
+
+const wallet = pg.wallet;
+const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+
+// Create new mint account
+const mint = await createMint(
+  connection,
+  wallet.keypair, // payer
+  wallet.publicKey, // mint authority
+  wallet.publicKey, // freeze authority
+  2, // decimals
+  new Keypair(), // keypair for mint account
+  null, // confirmOptions
+  TOKEN_2022_PROGRAM_ID,
+);
+```
+
+### Generate Keypair
+
+```ts filename="client.ts" copy
+// Generate keypair to use as address of token account
+const token = Keypair.generate();
+
+// Calculate minimum lamports for space required by token account
+const rentLamports = await getMinimumBalanceForRentExemptAccount(connection);
+```
+
+### Build Create Account Instruction
+
+```ts filename="client.ts" copy
+// Instruction to create new account with space for new token account
+const createAccountInstruction = SystemProgram.createAccount({
+  fromPubkey: wallet.publicKey,
+  newAccountPubkey: token.publicKey,
+  space: ACCOUNT_SIZE,
+  lamports: rentLamports,
+  programId: TOKEN_2022_PROGRAM_ID,
+});
+```
+
+### Build Initialize Account Instruction
+
+```ts filename="client.ts" copy
+// Instruction to initialize token account
+const initializeAccountInstruction = createInitializeAccountInstruction(
+  token.publicKey, // token account address
+  mint, // mint address
+  wallet.publicKey, // token account owner
+  TOKEN_2022_PROGRAM_ID,
+);
+```
+
+### Add Instructions to Transaction
+
+```ts filename="client.ts" copy
+const transaction = new Transaction().add(
+  createAccountInstruction,
+  initializeAccountInstruction,
+);
+```
+
+### Send Transaction
+
+```ts filename="client.ts" copy
+const transactionSignature = await sendAndConfirmTransaction(
+  connection,
+  transaction,
+  [
+    wallet.keypair, // payer
+    token, // token address keypair
+  ],
+);
+```
+
+```ts filename="client.ts" copy
+console.log(
+  "\nTransaction Signature:",
+  `https://explorer.solana.com/tx/${transactionSignature}?cluster=devnet`,
+);
+
+console.log(
+  "\nToken Account: ",
+  `https://explorer.solana.com/address/${token.publicKey}?cluster=devnet`,
+);
+```
+
+### Run script
+
+```shell filename="Terminal" copy
+run
+```
+
+<details>
+<summary>Output</summary>
+
+```bash
+Running client...
+  client.ts:
+
+Transaction Signature: https://explorer.solana.com/tx/KrXyevdmKCNcscZru52dwgHRTQnMeMcWiiHrJXL3QUkaGpLF4cVfSMA4JruwVtfrBg2pjVBvTqJVofN8ceyEUFm?cluster=devnet
+
+Token Account:  https://explorer.solana.com/address/6MWnReiGWboKJaVroawnw7vRJC53t5UB5Uts4XJ9nXUf?cluster=devnet
+```
+
+</details>
+
+</Steps>
+
+<Accordions >
+<Accordion title="Source Code - Initialize Account Instruction">
+
+<RemoteCodeblock permalink={links[0]} />
+
+</Accordion>
+</Accordions>

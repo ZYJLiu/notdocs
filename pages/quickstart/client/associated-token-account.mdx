@@ -1,5 +1,226 @@
-# Title
+import { Steps, Tabs } from "nextra/components";
+import { Accordion, Accordions } from "@/components/Accordion";
+import { RemoteCodeblock, permalinkFetch } from "@/components/remote-codeblock";
+
+export const links = [
+  // process_create_associated_token_account()
+  "https://github.com/solana-labs/solana-program-library/blob/b1c44c171bc95e6ee74af12365cb9cbab68be76c/associated-token-account/program/src/processor.rs#L65-L162",
+  // create_pda_account()
+  "https://github.com/solana-labs/solana-program-library/blob/master/associated-token-account/program/src/tools/account.rs#L17-L73",
+];
+
+export async function getStaticProps() {
+  return await permalinkFetch(links);
+}
+
+# Associated Token Account
 
 - create an ata token account
 - manually do it
 - use helper to do it
+
+## Create Token Account
+
+https://beta.solpg.io/660ce868cffcf4b13384d011
+
+<Accordions >
+<Accordion title="Final Code">
+
+```ts filename="client.ts" copy
+import {
+  Connection,
+  Transaction,
+  clusterApiUrl,
+  sendAndConfirmTransaction,
+  Keypair,
+} from "@solana/web3.js";
+import {
+  createMint,
+  createAssociatedTokenAccountInstruction,
+  getAssociatedTokenAddressSync,
+  TOKEN_2022_PROGRAM_ID,
+} from "@solana/spl-token";
+
+const wallet = pg.wallet;
+const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+
+// Create new Mint Account
+const mint = await createMint(
+  connection,
+  wallet.keypair, // payer
+  wallet.publicKey, // mint authority
+  wallet.publicKey, // freeze authority
+  2, // decimals
+  new Keypair(), // keypair for mint account
+  null,
+  TOKEN_2022_PROGRAM_ID,
+);
+
+// Derive PDA
+const associatedTokenAccountAddress = getAssociatedTokenAddressSync(
+  mint, // mint address
+  wallet.publicKey, // token account owner
+  false, // allow owner off-curve (PDA)
+  TOKEN_2022_PROGRAM_ID,
+);
+
+// Instruction to create associated token account
+const instruction = createAssociatedTokenAccountInstruction(
+  wallet.publicKey, // payer
+  associatedTokenAccountAddress, // token account address
+  wallet.publicKey, // owner
+  mint, // mint address
+  TOKEN_2022_PROGRAM_ID,
+);
+
+// Create transaction with instruction
+const transaction = new Transaction().add(instruction);
+
+// Sign and send transaction
+const transactionSignature = await sendAndConfirmTransaction(
+  connection,
+  transaction,
+  [
+    wallet.keypair, // payer
+  ],
+);
+
+console.log(
+  "\nTransaction Signature:",
+  `https://explorer.solana.com/tx/${transactionSignature}?cluster=devnet`,
+);
+
+console.log(
+  "\nToken Account: ",
+  `https://explorer.solana.com/address/${associatedTokenAccountAddress}?cluster=devnet`,
+);
+```
+
+</Accordion>
+</Accordions>
+
+<Steps>
+
+### Starter Code
+
+- open solana playground
+- starter code
+
+```ts filename="client.ts" copy
+import {
+  Connection,
+  Transaction,
+  clusterApiUrl,
+  sendAndConfirmTransaction,
+  Keypair,
+} from "@solana/web3.js";
+import {
+  createMint,
+  createAssociatedTokenAccountInstruction,
+  getAssociatedTokenAddressSync,
+  TOKEN_2022_PROGRAM_ID,
+} from "@solana/spl-token";
+
+const wallet = pg.wallet;
+const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+
+// Create new Mint Account
+const mint = await createMint(
+  connection,
+  wallet.keypair, // payer
+  wallet.publicKey, // mint authority
+  wallet.publicKey, // freeze authority
+  2, // decimals
+  new Keypair(), // keypair for mint account
+  null,
+  TOKEN_2022_PROGRAM_ID,
+);
+```
+
+### Derive Associated Token Address
+
+```ts filename="client.ts" copy
+// Derive PDA
+const associatedTokenAccountAddress = getAssociatedTokenAddressSync(
+  mint, // mint address
+  wallet.publicKey, // token account owner
+  false, // allow owner off-curve (PDA)
+  TOKEN_2022_PROGRAM_ID,
+);
+```
+
+### Build Create Associated Token Account Instruction
+
+```ts filename="client.ts" copy
+// Instruction to create associated token account
+const instruction = createAssociatedTokenAccountInstruction(
+  wallet.publicKey, // payer
+  associatedTokenAccountAddress, // token account address
+  wallet.publicKey, // owner
+  mint, // mint address
+  TOKEN_2022_PROGRAM_ID,
+);
+```
+
+### Add Instruction to Transaction
+
+```ts filename="client.ts" copy
+// Create transaction with instruction
+const transaction = new Transaction().add(instruction);
+```
+
+### Send Transaction
+
+```ts filename="client.ts" copy
+const transactionSignature = await sendAndConfirmTransaction(
+  connection,
+  transaction,
+  [
+    wallet.keypair, // payer
+  ],
+);
+```
+
+```ts filename="client.ts" copy
+console.log(
+  "\nTransaction Signature:",
+  `https://explorer.solana.com/tx/${transactionSignature}?cluster=devnet`,
+);
+
+console.log(
+  "\nToken Account: ",
+  `https://explorer.solana.com/address/${associatedTokenAccountAddress}?cluster=devnet`,
+);
+```
+
+### Run script
+
+```shell filename="Terminal" copy
+run
+```
+
+<details>
+<summary>Output</summary>
+
+```bash
+Running client...
+  client.ts:
+
+Transaction Signature: https://explorer.solana.com/tx/hi7bbn11SMX9RRc82QUG72FhCxWRpx8h5U5gxsKPc4LmToYMe5hhcmXi6gyNd81s4a532jWQ51Rq8JXf6aWVL2P?cluster=devnet
+
+Token Account:  https://explorer.solana.com/address/4iCdCKzXrSZTmtZ1FMHvU3owWcy1fwyYHYzw9BnpN745?cluster=devnet
+```
+
+</details>
+
+</Steps>
+
+<Accordions >
+<Accordion title="Source Code - Create Associated Token Account Instruction">
+
+<RemoteCodeblock permalink={links[0]} />
+
+<RemoteCodeblock permalink={links[1]} />
+
+</Accordion>
+</Accordions>

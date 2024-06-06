@@ -1,5 +1,16 @@
-# Overview
+import StackBlitz from "@/components/StackBlitz";
+import { RemoteCodeblock, permalinkFetch } from "@/components/remote-codeblock";
 
+export const links = [
+  "https://github.com/solana-developers/anchor-starter/blob/8964eb13b91c865fc930ee68d2de05786b969e23/01-counter/programs/counter/src/lib.rs#L1-L60",
+  "https://github.com/solana-developers/anchor-starter/blob/8964eb13b91c865fc930ee68d2de05786b969e23/01-counter/tests/counter.ts#L1-L52",
+];
+
+export async function getStaticProps() {
+  return await permalinkFetch(links);
+}
+
+# Overview
 
 Explain and show the final project, before reader begins. Display end-state of
 learning journey.
@@ -9,3 +20,23 @@ learning journey.
 - walkthrough how to use solana playground
 - get devnet sol, airdrop / faucet
 
+<iframe
+  src="https://anchor-starter.vercel.app/"
+  className="h-[90vh] w-full"
+  title="Demo"
+/>
+
+<StackBlitz
+  name="/solana-developers/anchor-starter/tree/main/04-frontend"
+  openFile=""
+  view="both"
+/>
+
+<RemoteCodeblock permalink={links[0]} />
+<RemoteCodeblock permalink={links[1]} />
+
+## Solana Playground
+
+- setup
+- create playground wallet
+- airdrop / faucet devnet sol

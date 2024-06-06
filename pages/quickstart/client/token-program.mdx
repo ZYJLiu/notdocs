@@ -1,15 +1,62 @@
+import { RemoteCodeblock, permalinkFetch } from "@/components/remote-codeblock";
+
+export const links = [
+  // mint account struct
+  "https://github.com/solana-labs/solana-program-library/blob/78da1843fc515e4aa9e18ea48b71d2b903e5e6ea/token/program-2022/src/state.rs#L30-L44",
+  // token account struct
+  "https://github.com/solana-labs/solana-program-library/blob/78da1843fc515e4aa9e18ea48b71d2b903e5e6ea/token/program-2022/src/state.rs#L104-L125",
+];
+
+export async function getStaticProps() {
+  return await permalinkFetch(links);
+}
+
 # Tokens On Solana
 
 - explainer page only
-
-## Token Program
-
-## Mint Account
-
-## Token Account
 
 - explain tokens on solana
 - overview token program
 - explorer links
 - link source code
 - spl-token.js
+
+## Token Program
+
+- token extensions program
+- business logic for all tokens fungible/non fungible
+
+token extensions program (2022)
+https://github.com/solana-labs/solana-program-library/tree/78da1843fc515e4aa9e18ea48b71d2b903e5e6ea/token/program-2022
+
+## Mint Account
+
+- explain mint account
+
+<RemoteCodeblock permalink={links[0]} />
+
+pyusd
+https://explorer.solana.com/address/2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo
+
+usdc
+https://explorer.solana.com/address/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+
+- playground fetch mint
+
+## Token Account
+
+- explain token account
+
+<RemoteCodeblock permalink={links[1]} />
+
+pyusd token account
+https://explorer.solana.com/address/B6j8ccfHJAPJYdV5y1knB7gEGFNzKRyvuxerbWUcb75L
+
+usdc token account
+https://explorer.solana.com/address/3emsAVdmGKERbHjmGfQ6oZ1e35dkf5iYcS6U4CPKFVaa
+
+- playground fetch tojken
+
+## Relationship between Accounts
+
+- diagrams
