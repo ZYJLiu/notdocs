@@ -60,7 +60,7 @@ export function RemoteCodeblock({ permalink }: RemoteCodeblockProps) {
     <Codeblock.Container>
       <Codeblock.Header>
         <img
-          className="h-[16px] filter-none dark:invert"
+          className="m-0 h-[16px] w-auto filter-none dark:invert"
           src={`/language-icons/${icon}`}
         />
         <Link

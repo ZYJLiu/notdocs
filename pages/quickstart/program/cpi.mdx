@@ -1,2 +1,29 @@
-- cross program invocation overview
-- cpi in program, mint to, with pda signer
+import { Steps, Tabs, Callout } from "nextra/components";
+import { Accordion, Accordions } from "@/components/Accordion";
+import { RemoteCodeblock, permalinkFetch } from "@/components/remote-codeblock";
+
+export const links = [
+  // findProgramAddressSync()
+  "https://github.com/solana-labs/solana-web3.js/blob/ca9da583a39cdf8fd874a2e03fccdc849e29de34/packages/library-legacy/src/publickey.ts#L212-L232",
+  // createProgramAddressSync
+  "https://github.com/solana-labs/solana-web3.js/blob/ca9da583a39cdf8fd874a2e03fccdc849e29de34/packages/library-legacy/src/publickey.ts#L168-L189",
+  // find_program_address()
+  "https://github.com/solana-labs/solana/blob/27eff8408b7223bb3c4ab70523f8a8dca3ca6645/sdk/program/src/pubkey.rs#L484-L487",
+  // try_find_program_address()
+  "https://github.com/solana-labs/solana/blob/27eff8408b7223bb3c4ab70523f8a8dca3ca6645/sdk/program/src/pubkey.rs#L502-L541",
+  // create_program_address()
+  "https://github.com/solana-labs/solana/blob/27eff8408b7223bb3c4ab70523f8a8dca3ca6645/sdk/program/src/pubkey.rs#L585-L632",
+  // pda counter program
+  "https://github.com/solana-developers/anchor-starter/blob/8964eb13b91c865fc930ee68d2de05786b969e23/02-pda-counter/programs/counter/src/lib.rs#L1-L59",
+  // pda counter program test
+  "https://github.com/solana-developers/anchor-starter/blob/8964eb13b91c865fc930ee68d2de05786b969e23/02-pda-counter/tests/counter.ts#L1-L41",
+  // counter program
+  "https://github.com/solana-developers/anchor-starter/blob/8964eb13b91c865fc930ee68d2de05786b969e23/01-counter/programs/counter/src/lib.rs#L1-L60",
+  // counter program test
+  "https://github.com/solana-developers/anchor-starter/blob/8964eb13b91c865fc930ee68d2de05786b969e23/01-counter/tests/counter.ts#L1-L52",
+
+];
+
+export async function getStaticProps() {
+  return await permalinkFetch(links);
+}

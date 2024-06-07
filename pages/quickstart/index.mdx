@@ -1,5 +1,5 @@
 import StackBlitz from "@/components/StackBlitz";
-import { Callout, Steps } from "nextra/components";
+import { Callout, Steps, Tabs } from "nextra/components";
 import { Accordion, Accordions } from "@/components/Accordion";
 import { RemoteCodeblock, permalinkFetch } from "@/components/remote-codeblock";
 
@@ -25,20 +25,32 @@ learning journey.
 <Accordions >
 <Accordion title="Demo">
 
-<iframe
-  src="https://anchor-starter.vercel.app/"
-  className="h-[90vh] w-full"
-  title="Demo"
-/>
+- test tabs
 
-<StackBlitz
-  name="/solana-developers/anchor-starter/tree/main/04-frontend"
-  openFile=""
-  view="both"
-/>
+- ok this program won't work on solpg rn, due to dependency diff
 
-<RemoteCodeblock permalink={links[0]} />
-<RemoteCodeblock permalink={links[1]} />
+<Tabs items={["Iframe", "StackBlitz", "Program", "Test"]}>
+  <Tabs.Tab>
+    <iframe
+      src="https://anchor-starter.vercel.app/"
+      className="h-[60vh] w-full"
+      title="Demo"
+    />
+  </Tabs.Tab>
+  <Tabs.Tab>
+    <StackBlitz
+      name="/solana-developers/anchor-starter/tree/main/04-frontend"
+      openFile=""
+      view="both"
+    />
+  </Tabs.Tab>
+  <Tabs.Tab>
+    <RemoteCodeblock permalink={links[0]} />
+  </Tabs.Tab>
+  <Tabs.Tab>
+    <RemoteCodeblock permalink={links[1]} />
+  </Tabs.Tab>
+</Tabs>
 
 </Accordion>
 </Accordions>

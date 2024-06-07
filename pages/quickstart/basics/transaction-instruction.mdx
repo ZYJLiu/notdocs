@@ -35,7 +35,7 @@ export async function getStaticProps() {
 - explain components of instruction
 - programid, accounts, instruction data
 
-## SOL Transfer
+## How to Transfer SOL
 
 - simple SOL transfer
 
@@ -150,6 +150,31 @@ run
 </Accordion>
 </Accordions>
 
+## How to Create an Account
+
+<Accordions >
+<Accordion title="Source Code - Create Account Instruction">
+
+- create_account function includes checks if the address is already in use,
+- if not, invokes allocate_and_assign and transfer
+
+<RemoteCodeblock permalink={links[2]} />
+
+- allocate_and_assign, invoke allocate and assign
+
+<RemoteCodeblock permalink={links[3]} />
+
+- allocates space to the data field of the account's accountinfo
+
+<RemoteCodeblock permalink={links[4]} />
+
+- assign, sets a new program owner on the account
+
+<RemoteCodeblock permalink={links[5]} />
+
+</Accordion>
+</Accordions>
+
 ## Minimum Rent
 
 - example transfer below minimum rent, tx fails
@@ -186,31 +211,6 @@ const transferInstruction = SystemProgram.transfer({
   lamports: minumumLamports,
 });
 ```
-
-## Create Account
-
-<Accordions >
-<Accordion title="Source Code - Create Account Instruction">
-
-- create_account function includes checks if the address is already in use,
-- if not, invokes allocate_and_assign and transfer
-
-<RemoteCodeblock permalink={links[2]} />
-
-- allocate_and_assign, invoke allocate and assign
-
-<RemoteCodeblock permalink={links[3]} />
-
-- allocates space to the data field of the account's accountinfo
-
-<RemoteCodeblock permalink={links[4]} />
-
-- assign, sets a new program owner on the account
-
-<RemoteCodeblock permalink={links[5]} />
-
-</Accordion>
-</Accordions>
 
 ## Notes
 

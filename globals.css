@@ -47,3 +47,12 @@ button[id^="headlessui-tabs-tab"] {
   margin: 0 3px 0 3px;
   box-shadow: none !important;
 }
+
+img {
+  border-radius: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+  /* object-fit: cover; */
+  /* text-align: center; */
+  width: 55rem;
+}
