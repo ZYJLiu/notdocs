@@ -1,0 +1,461 @@
+import { Steps, Tabs } from "nextra/components";
+import { Accordion, Accordions } from "@/components/Accordion";
+import { RemoteCodeblock, permalinkFetch } from "@/components/remote-codeblock";
+
+export const links = [
+  // process_initialize() (metadata pointer)
+  "https://github.com/solana-labs/solana-program-library/blob/78da1843fc515e4aa9e18ea48b71d2b903e5e6ea/token/program-2022/src/extension/metadata_pointer/processor.rs#L27-L49",
+  // process_initialize() (token metadata)
+  "https://github.com/solana-labs/solana-program-library/blob/78da1843fc515e4aa9e18ea48b71d2b903e5e6ea/token/program-2022/src/extension/token_metadata/processor.rs#L47-L107",
+  // process_update_field() (token metadata)
+  "https://github.com/solana-labs/solana-program-library/blob/78da1843fc515e4aa9e18ea48b71d2b903e5e6ea/token/program-2022/src/extension/token_metadata/processor.rs#L110-L136",
+];
+
+export async function getStaticProps() {
+  return await permalinkFetch(links);
+}
+
+# Token Metadata
+
+- create mint account with metadata pointer and metadata extension
+- show on solanafm
+
+## Token Metadata Extension
+
+https://beta.solpg.io/65964e90cffcf4b13384ceca
+
+<Accordions >
+<Accordion title="Final Code">
+
+```ts filename="client.ts" copy
+import {
+  Connection,
+  Keypair,
+  SystemProgram,
+  Transaction,
+  clusterApiUrl,
+  sendAndConfirmTransaction,
+} from "@solana/web3.js";
+import {
+  ExtensionType,
+  TOKEN_2022_PROGRAM_ID,
+  createInitializeMintInstruction,
+  getMintLen,
+  createInitializeMetadataPointerInstruction,
+  getMint,
+  getMetadataPointerState,
+  getTokenMetadata,
+  TYPE_SIZE,
+  LENGTH_SIZE,
+} from "@solana/spl-token";
+import {
+  createInitializeInstruction,
+  createUpdateFieldInstruction,
+  createRemoveKeyInstruction,
+  pack,
+  TokenMetadata,
+} from "@solana/spl-token-metadata";
+
+// Playground wallet
+const payer = pg.wallet.keypair;
+
+// Connection to devnet cluster
+const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+
+// Transaction to send
+let transaction: Transaction;
+// Transaction signature returned from sent transaction
+let transactionSignature: string;
+
+// Generate new keypair for Mint Account
+const mintKeypair = Keypair.generate();
+// Address for Mint Account
+const mint = mintKeypair.publicKey;
+// Decimals for Mint Account
+const decimals = 2;
+// Authority that can mint new tokens
+const mintAuthority = pg.wallet.publicKey;
+// Authority that can update token metadata
+const updateAuthority = pg.wallet.publicKey;
+
+// Metadata to store in Mint Account
+const metaData: TokenMetadata = {
+  updateAuthority: updateAuthority,
+  mint: mint,
+  name: "OPOS",
+  symbol: "OPOS",
+  uri: "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/DeveloperPortal/metadata.json",
+  additionalMetadata: [["description", "Only Possible On Solana"]],
+};
+
+// Size of MetadataExtension 2 bytes for type, 2 bytes for length
+const metadataExtension = TYPE_SIZE + LENGTH_SIZE;
+// Size of metadata
+const metadataLen = pack(metaData).length;
+
+// Size of Mint Account with extension
+const mintLen = getMintLen([ExtensionType.MetadataPointer]);
+
+// Minimum lamports required for Mint Account
+const lamports = await connection.getMinimumBalanceForRentExemption(
+  mintLen + metadataExtension + metadataLen,
+);
+
+// Instruction to invoke System Program to create new account
+const createAccountInstruction = SystemProgram.createAccount({
+  fromPubkey: payer.publicKey, // Account that will transfer lamports to created account
+  newAccountPubkey: mint, // Address of the account to create
+  space: mintLen, // Amount of bytes to allocate to the created account
+  lamports, // Amount of lamports transferred to created account
+  programId: TOKEN_2022_PROGRAM_ID, // Program assigned as owner of created account
+});
+
+// Instruction to initialize the MetadataPointer Extension
+const initializeMetadataPointerInstruction =
+  createInitializeMetadataPointerInstruction(
+    mint, // Mint Account address
+    updateAuthority, // Authority that can set the metadata address
+    mint, // Account address that holds the metadata
+    TOKEN_2022_PROGRAM_ID,
+  );
+
+// Instruction to initialize Mint Account data
+const initializeMintInstruction = createInitializeMintInstruction(
+  mint, // Mint Account Address
+  decimals, // Decimals of Mint
+  mintAuthority, // Designated Mint Authority
+  null, // Optional Freeze Authority
+  TOKEN_2022_PROGRAM_ID, // Token Extension Program ID
+);
+
+// Instruction to initialize Metadata Account data
+const initializeMetadataInstruction = createInitializeInstruction({
+  programId: TOKEN_2022_PROGRAM_ID, // Token Extension Program as Metadata Program
+  metadata: mint, // Account address that holds the metadata
+  updateAuthority: updateAuthority, // Authority that can update the metadata
+  mint: mint, // Mint Account address
+  mintAuthority: mintAuthority, // Designated Mint Authority
+  name: metaData.name,
+  symbol: metaData.symbol,
+  uri: metaData.uri,
+});
+
+// Instruction to update metadata, adding custom field
+const updateFieldInstruction = createUpdateFieldInstruction({
+  programId: TOKEN_2022_PROGRAM_ID, // Token Extension Program as Metadata Program
+  metadata: mint, // Account address that holds the metadata
+  updateAuthority: updateAuthority, // Authority that can update the metadata
+  field: metaData.additionalMetadata[0][0], // key
+  value: metaData.additionalMetadata[0][1], // value
+});
+
+// Add instructions to new transaction
+transaction = new Transaction().add(
+  createAccountInstruction,
+  initializeMetadataPointerInstruction,
+  initializeMintInstruction,
+  initializeMetadataInstruction,
+  updateFieldInstruction,
+);
+
+// Send transaction
+transactionSignature = await sendAndConfirmTransaction(
+  connection,
+  transaction,
+  [payer, mintKeypair], // Signers
+);
+
+console.log(
+  "\nCreate Mint Account:",
+  `https://solana.fm/tx/${transactionSignature}?cluster=devnet-solana`,
+);
+
+// Retrieve mint information
+const mintInfo = await getMint(
+  connection,
+  mint,
+  "confirmed",
+  TOKEN_2022_PROGRAM_ID,
+);
+
+// Retrieve and log the metadata pointer state
+const metadataPointer = getMetadataPointerState(mintInfo);
+console.log("\nMetadata Pointer:", JSON.stringify(metadataPointer, null, 2));
+
+// Retrieve and log the metadata state
+const metadata = await getTokenMetadata(
+  connection,
+  mint, // Mint Account address
+);
+console.log("\nMetadata:", JSON.stringify(metadata, null, 2));
+
+// Instruction to remove a key from the metadata
+const removeKeyInstruction = createRemoveKeyInstruction({
+  programId: TOKEN_2022_PROGRAM_ID, // Token Extension Program as Metadata Program
+  metadata: mint, // Address of the metadata
+  updateAuthority: updateAuthority, // Authority that can update the metadata
+  key: metaData.additionalMetadata[0][0], // Key to remove from the metadata
+  idempotent: true, // If the idempotent flag is set to true, then the instruction will not error if the key does not exist
+});
+
+// Add instruction to new transaction
+transaction = new Transaction().add(removeKeyInstruction);
+
+// Send transaction
+transactionSignature = await sendAndConfirmTransaction(
+  connection,
+  transaction,
+  [payer],
+);
+
+console.log(
+  "\nRemove Additional Metadata Field:",
+  `https://solana.fm/tx/${transactionSignature}?cluster=devnet-solana`,
+);
+
+// Retrieve and log the metadata state
+const updatedMetadata = await getTokenMetadata(
+  connection,
+  mint, // Mint Account address
+);
+console.log("\nUpdated Metadata:", JSON.stringify(updatedMetadata, null, 2));
+
+console.log(
+  "\nMint Account:",
+  `https://solana.fm/address/${mint}?cluster=devnet-solana`,
+);
+```
+
+</Accordion>
+</Accordions>
+
+<Steps>
+
+### Starter Code
+
+- open solana playground
+- starter code
+
+```ts filename="client.ts" copy
+import {
+  Connection,
+  Keypair,
+  SystemProgram,
+  Transaction,
+  clusterApiUrl,
+  sendAndConfirmTransaction,
+} from "@solana/web3.js";
+import {
+  ExtensionType,
+  TOKEN_2022_PROGRAM_ID,
+  createInitializeMintInstruction,
+  getMintLen,
+  createInitializeMetadataPointerInstruction,
+  getMint,
+  getMetadataPointerState,
+  getTokenMetadata,
+  TYPE_SIZE,
+  LENGTH_SIZE,
+} from "@solana/spl-token";
+import {
+  createInitializeInstruction,
+  createUpdateFieldInstruction,
+  createRemoveKeyInstruction,
+  pack,
+  TokenMetadata,
+} from "@solana/spl-token-metadata";
+
+// Playground wallet
+const payer = pg.wallet.keypair;
+
+// Connection to devnet cluster
+const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+
+// Transaction to send
+let transaction: Transaction;
+// Transaction signature returned from sent transaction
+let transactionSignature: string;
+```
+
+### Mint Setup
+
+```ts filename="client.ts" copy
+// Generate new keypair for Mint Account
+const mintKeypair = Keypair.generate();
+// Address for Mint Account
+const mint = mintKeypair.publicKey;
+// Decimals for Mint Account
+const decimals = 2;
+// Authority that can mint new tokens
+const mintAuthority = pg.wallet.publicKey;
+// Authority that can update the metadata pointer and token metadata
+const updateAuthority = pg.wallet.publicKey;
+
+// Metadata to store in Mint Account
+const metaData: TokenMetadata = {
+  updateAuthority: updateAuthority,
+  mint: mint,
+  name: "OPOS",
+  symbol: "OPOS",
+  uri: "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/DeveloperPortal/metadata.json",
+  additionalMetadata: [["description", "Only Possible On Solana"]],
+};
+```
+
+```ts filename="client.ts" copy
+// Size of MetadataExtension 2 bytes for type, 2 bytes for length
+const metadataExtension = TYPE_SIZE + LENGTH_SIZE;
+// Size of metadata
+const metadataLen = pack(metaData).length;
+
+// Size of Mint Account with extension
+const mintLen = getMintLen([ExtensionType.MetadataPointer]);
+
+// Minimum lamports required for Mint Account
+const lamports = await connection.getMinimumBalanceForRentExemption(
+  mintLen + metadataExtension + metadataLen,
+);
+```
+
+### Build Create Account Instruction
+
+```ts filename="client.ts" copy
+// Instruction to invoke System Program to create new account
+const createAccountInstruction = SystemProgram.createAccount({
+  fromPubkey: payer.publicKey, // Account that will transfer lamports to created account
+  newAccountPubkey: mint, // Address of the account to create
+  space: mintLen, // Amount of bytes to allocate to the created account
+  lamports, // Amount of lamports transferred to created account
+  programId: TOKEN_2022_PROGRAM_ID, // Program assigned as owner of created account
+});
+```
+
+### Build Initialize Metadata Pointer Instruction
+
+```ts filename="client.ts" copy
+// Instruction to initialize the MetadataPointer Extension
+const initializeMetadataPointerInstruction =
+  createInitializeMetadataPointerInstruction(
+    mint, // Mint Account address
+    updateAuthority, // Authority that can set the metadata address
+    mint, // Account address that holds the metadata
+    TOKEN_2022_PROGRAM_ID,
+  );
+```
+
+### Build Initialize Mint Instruction
+
+```ts filename="client.ts" copy
+// Instruction to initialize Mint Account data
+const initializeMintInstruction = createInitializeMintInstruction(
+  mint, // Mint Account Address
+  decimals, // Decimals of Mint
+  mintAuthority, // Designated Mint Authority
+  null, // Optional Freeze Authority
+  TOKEN_2022_PROGRAM_ID, // Token Extension Program ID
+);
+```
+
+### Build Initialize Metadata Instruction
+
+```ts filename="client.ts" copy
+// Instruction to initialize Metadata Account data
+const initializeMetadataInstruction = createInitializeInstruction({
+  programId: TOKEN_2022_PROGRAM_ID, // Token Extension Program as Metadata Program
+  metadata: mint, // Account address that holds the metadata
+  updateAuthority: updateAuthority, // Authority that can update the metadata
+  mint: mint, // Mint Account address
+  mintAuthority: mintAuthority, // Designated Mint Authority
+  name: metaData.name,
+  symbol: metaData.symbol,
+  uri: metaData.uri,
+});
+```
+
+### Build Update Metadata Instruction
+
+```ts filename="client.ts" copy
+// Instruction to update metadata, adding custom field
+const updateFieldInstruction = createUpdateFieldInstruction({
+  programId: TOKEN_2022_PROGRAM_ID, // Token Extension Program as Metadata Program
+  metadata: mint, // Account address that holds the metadata
+  updateAuthority: updateAuthority, // Authority that can update the metadata
+  field: metaData.additionalMetadata[0][0], // key
+  value: metaData.additionalMetadata[0][1], // value
+});
+```
+
+### Add Instructions to Transaction
+
+```ts filename="client.ts" copy
+// Add instructions to new transaction
+transaction = new Transaction().add(
+  createAccountInstruction,
+  initializeMetadataPointerInstruction,
+  // note: the above instructions are required before initializing the mint
+  initializeMintInstruction,
+  initializeMetadataInstruction,
+  updateFieldInstruction,
+);
+```
+
+### Send Transaction
+
+```ts filename="client.ts" copy
+// Send transaction
+transactionSignature = await sendAndConfirmTransaction(
+  connection,
+  transaction,
+  [payer, mintKeypair], // Signers
+);
+
+console.log(
+  "\nCreate Mint Account:",
+  `https://solana.fm/tx/${transactionSignature}?cluster=devnet-solana`,
+);
+
+console.log(
+  "\nMint Account:",
+  `https://solana.fm/address/${mint}?cluster=devnet-solana`,
+);
+```
+
+### Run script
+
+```shell filename="Terminal" copy
+run
+```
+
+<details>
+<summary>Output</summary>
+
+```bash
+Running client...
+  client.ts:
+
+Create Mint Account: https://solana.fm/tx/GtE21726aRpxV8GFwBYH5M5VoNfhXKSxDkwk5UbwFnFUF4ooKP8K5St46CJrv1jDmbiTHdHGpL4LRDBqxiDdZfr?cluster=devnet-solana
+
+Mint Account: https://solana.fm/address/4bpeWYzBKgVNYXKr7KjrkcAeWLYTWHq7neqquUxwQwyM?cluster=devnet-solana
+```
+
+</details>
+
+</Steps>
+
+<Accordions >
+<Accordion title="Source Code - Initialize Metadata Pointer Instruction">
+
+<RemoteCodeblock permalink={links[0]} />
+
+</Accordion>
+<Accordion title="Source Code - Initialize Token Metadata Instruction">
+
+<RemoteCodeblock permalink={links[1]} />
+
+</Accordion>
+<Accordion title="Source Code - Update Token Metadata Instruction">
+
+<RemoteCodeblock permalink={links[2]} />
+
+</Accordion>
+</Accordions>

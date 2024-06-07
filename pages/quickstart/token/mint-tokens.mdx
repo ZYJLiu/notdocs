@@ -1,0 +1,220 @@
+import { Steps, Tabs } from "nextra/components";
+import { Accordion, Accordions } from "@/components/Accordion";
+import { RemoteCodeblock, permalinkFetch } from "@/components/remote-codeblock";
+
+export const links = [
+  // process_mint_to()
+  "https://github.com/solana-labs/solana-program-library/blob/78da1843fc515e4aa9e18ea48b71d2b903e5e6ea/token/program-2022/src/processor.rs#L917-L993",
+];
+
+export async function getStaticProps() {
+  return await permalinkFetch(links);
+}
+
+# Mint Tokens
+
+- create mint, ata, mint tokens
+
+## Mint Tokens to Token Account
+
+https://beta.solpg.io/660cea45cffcf4b13384d012
+
+<Accordions >
+<Accordion title="Final Code">
+
+```ts filename="client.ts" copy
+import {
+  Connection,
+  Transaction,
+  clusterApiUrl,
+  sendAndConfirmTransaction,
+  Keypair,
+} from "@solana/web3.js";
+import {
+  createMint,
+  createAccount,
+  TOKEN_2022_PROGRAM_ID,
+  createMintToInstruction,
+} from "@solana/spl-token";
+
+const wallet = pg.wallet;
+const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+
+// Create new Mint Account
+const mint = await createMint(
+  connection,
+  wallet.keypair, // payer
+  wallet.publicKey, // mint authority
+  wallet.publicKey, // freeze authority
+  2, // decimals
+  new Keypair(), // keypair for mint account
+  null,
+  TOKEN_2022_PROGRAM_ID,
+);
+
+// Create new Token Account, defaults to ATA
+const tokenAccount = await createAccount(
+  connection,
+  wallet.keypair, // payer
+  mint, // mint address
+  wallet.publicKey, // token account owner
+  null,
+  null,
+  TOKEN_2022_PROGRAM_ID,
+);
+
+const instruction = createMintToInstruction(
+  mint, // mint address
+  tokenAccount, // destination
+  wallet.publicKey, // mint authority
+  100, // amount
+  [],
+  TOKEN_2022_PROGRAM_ID,
+);
+
+const transaction = new Transaction().add(instruction);
+
+// Sign and send transaction
+const transactionSignature = await sendAndConfirmTransaction(
+  connection,
+  transaction,
+  [
+    wallet.keypair, // payer, mint authority
+  ],
+);
+
+console.log(
+  "\nTransaction Signature:",
+  `https://explorer.solana.com/tx/${transactionSignature}?cluster=devnet`,
+);
+
+console.log(
+  "\nToken Account: ",
+  `https://explorer.solana.com/address/${tokenAccount}?cluster=devnet`,
+);
+```
+
+</Accordion>
+</Accordions>
+
+<Steps>
+
+### Starter Code
+
+- open solana playground
+- starter code
+
+```ts filename="client.ts" copy
+import {
+  Connection,
+  Transaction,
+  clusterApiUrl,
+  sendAndConfirmTransaction,
+  Keypair,
+} from "@solana/web3.js";
+import {
+  createMint,
+  createAccount,
+  TOKEN_2022_PROGRAM_ID,
+  createMintToInstruction,
+} from "@solana/spl-token";
+
+const wallet = pg.wallet;
+const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+
+// Create new Mint Account
+const mint = await createMint(
+  connection,
+  wallet.keypair, // payer
+  wallet.publicKey, // mint authority
+  wallet.publicKey, // freeze authority
+  2, // decimals
+  new Keypair(), // keypair for mint account
+  null,
+  TOKEN_2022_PROGRAM_ID,
+);
+
+// Create new Token Account, defaults to ATA
+const tokenAccount = await createAccount(
+  connection,
+  wallet.keypair, // payer
+  mint, // mint address
+  wallet.publicKey, // token account owner
+  null,
+  null,
+  TOKEN_2022_PROGRAM_ID,
+);
+```
+
+### Build Mint To Instruction
+
+```ts filename="client.ts" copy
+const instruction = createMintToInstruction(
+  mint, // mint address
+  tokenAccount, // destination
+  wallet.publicKey, // mint authority
+  100, // amount
+  [],
+  TOKEN_2022_PROGRAM_ID,
+);
+```
+
+### Add Instruction to Transaction
+
+```ts filename="client.ts" copy
+const transaction = new Transaction().add(instruction);
+```
+
+### Send Transaction
+
+```ts filename="client.ts" copy
+const transactionSignature = await sendAndConfirmTransaction(
+  connection,
+  transaction,
+  [
+    wallet.keypair, // payer, mint authority
+  ],
+);
+```
+
+```ts filename="client.ts" copy
+console.log(
+  "\nTransaction Signature:",
+  `https://explorer.solana.com/tx/${transactionSignature}?cluster=devnet`,
+);
+
+console.log(
+  "\nToken Account: ",
+  `https://explorer.solana.com/address/${tokenAccount}?cluster=devnet`,
+);
+```
+
+### Run script
+
+```shell filename="Terminal" copy
+run
+```
+
+<details>
+<summary>Output</summary>
+
+```bash
+Running client...
+  client.ts:
+
+Transaction Signature: https://explorer.solana.com/tx/9Hk9qVgrpE2ANVJFh7frSu9nka6QhgHFU4tBs7ueRfwxGFEnMD3WGwgidRbt8Zs5KoumEaLo9ubF2PRNEtBb26n?cluster=devnet
+
+Token Account:  https://explorer.solana.com/address/E16whVPaH8R7kMETbbZRn9RQCkAyeSLYkbMPdZFaJcko?cluster=devnet
+```
+
+</details>
+
+</Steps>
+
+<Accordions >
+<Accordion title="Source Code - Mint To Instruction">
+
+<RemoteCodeblock permalink={links[0]} />
+
+</Accordion>
+</Accordions>

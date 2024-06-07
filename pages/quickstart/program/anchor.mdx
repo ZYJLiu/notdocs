@@ -1,0 +1,436 @@
+import { Steps, Tabs } from "nextra/components";
+import { Accordion, Accordions } from "@/components/Accordion";
+import { RemoteCodeblock, permalinkFetch } from "@/components/remote-codeblock";
+
+export const links = [
+  "https://github.com/solana-developers/anchor-starter/blob/8964eb13b91c865fc930ee68d2de05786b969e23/01-counter/programs/counter/src/lib.rs#L1-L60",
+  "https://github.com/solana-developers/anchor-starter/blob/8964eb13b91c865fc930ee68d2de05786b969e23/01-counter/tests/counter.ts#L1-L52",
+];
+
+export async function getStaticProps() {
+  return await permalinkFetch(links);
+}
+
+## Counter Program
+
+https://beta.solpg.io/66624e49cffcf4b13384d14b
+
+<Accordions >
+<Accordion title="Source Code - Counter Program">
+
+<RemoteCodeblock permalink={links[0]} />
+<RemoteCodeblock permalink={links[1]} />
+
+</Accordion>
+</Accordions>
+
+<Steps>
+
+### Starter Code
+
+- open solana playground
+- starter code
+
+```rs filename="lib.ts" copy
+use anchor_lang::prelude::*;
+
+declare_id!("");
+
+#[program]
+pub mod counter {
+    use super::*;
+
+    pub fn initialize(_ctx: Context<Initialize>) -> Result<()> {
+        Ok(())
+    }
+
+    pub fn increment(_ctx: Context<Increment>) -> Result<()> {
+        Ok(())
+    }
+}
+
+#[derive(Accounts)]
+pub struct Initialize {}
+
+#[derive(Accounts)]
+pub struct Increment {}
+
+#[account]
+pub struct Counter {}
+```
+
+```shell filename="Terminal" copy
+build
+```
+
+<details>
+<summary>Output</summary>
+
+```bash
+$ build
+Building...
+Build successful. Completed in 3.82s.
+```
+
+</details>
+
+### Define Counter Account Type
+
+```rs filename="lib.ts" copy
+#[account]
+pub struct Counter {
+    pub count: u64,
+}
+```
+
+<details>
+<summary>Diff</summary>
+
+```diff
++ #[account]
++ pub struct Counter {
++    pub count: u64,
++ }
+
+- #[account]
+- pub struct Counter {}
+```
+
+</details>
+
+```shell filename="Terminal" copy
+build
+```
+
+### Implement Initialize Instruction
+
+- define required accounts
+
+```rs filename="lib.ts" copy
+#[derive(Accounts)]
+pub struct Initialize<'info> {
+    #[account(mut)]
+    pub user: Signer<'info>,
+
+    #[account(
+        init,
+        payer = user,
+        space = 8 + 8
+    )]
+    pub counter: Account<'info, Counter>,
+    pub system_program: Program<'info, System>,
+}
+```
+
+<details>
+<summary>Diff</summary>
+
+```diff
+- #[derive(Accounts)]
+- pub struct Initialize {}
+
++ #[derive(Accounts)]
++ pub struct Initialize<'info> {
++    #[account(mut)]
++    pub user: Signer<'info>,
++
++    #[account(
++        init,
++        payer = user,
++        space = 8 + 8
++    )]
++    pub counter: Account<'info, Counter>,
++    pub system_program: Program<'info, System>,
++ }
+```
+
+</details>
+
+- implement instruction
+
+```rs filename="lib.ts" copy
+pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+    let counter = &ctx.accounts.counter;
+    msg!("Counter account created! Current count: {}", counter.count);
+    Ok(())
+}
+```
+
+<details>
+<summary>Diff</summary>
+
+```diff
+- pub fn initialize(_ctx: Context<Initialize>) -> Result<()> {
+-     Ok(())
+- }
+
++ pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
++     let counter = &ctx.accounts.counter;
++     msg!("Counter account created! Current count: {}", counter.count);
++     Ok(())
++ }
+```
+
+</details>
+
+```shell filename="Terminal" copy
+build
+```
+
+### Implement Increment Instruction
+
+- define required accounts
+
+```rs filename="lib.ts" copy
+#[derive(Accounts)]
+pub struct Increment<'info> {
+    #[account(mut)]
+    pub counter: Account<'info, Counter>,
+}
+```
+
+<details>
+<summary>Diff</summary>
+
+```diff
+- #[derive(Accounts)]
+- pub struct Increment {}
+
++ #[derive(Accounts)]
++ pub struct Increment<'info> {
++    #[account(mut)]
++    pub counter: Account<'info, Counter>,
++ }
+```
+
+</details>
+
+- implement instruction
+
+```rs filename="lib.ts" copy
+pub fn increment(ctx: Context<Increment>) -> Result<()> {
+    let counter = &mut ctx.accounts.counter;
+    msg!("Previous counter: {}", counter.count);
+
+    // Increment the count value stored on the counter account by 1
+    counter.count = counter.count + 1;
+    msg!("Counter incremented! Current count: {}", counter.count);
+    Ok(())
+}
+```
+
+<details>
+<summary>Diff</summary>
+
+```diff
+- pub fn increment(_ctx: Context<Increment>) -> Result<()> {
+-     Ok(())
+- }
+
++ pub fn increment(ctx: Context<Increment>) -> Result<()> {
++     // Mutable reference to the counter account from the Increment struct
++     let counter = &mut ctx.accounts.counter;
++     msg!("Previous counter: {}", counter.count);
++
++     // Increment the count value stored on the counter account by 1
++     counter.count = counter.count + 1;
++     msg!("Counter incremented! Current count: {}", counter.count);
++     Ok(())
++ }
+```
+
+</details>
+
+```shell filename="Terminal" copy
+build
+```
+
+### Deploy Program
+
+- deploy program, airdrop if needed
+
+```shell filename="Terminal" copy
+deploy
+```
+
+<details>
+<summary>Output</summary>
+
+```bash
+$ deploy
+Deploying... This could take a while depending on the program size and network conditions.
+Deployment successful. Completed in 17s.
+```
+
+</details>
+
+### Test File Setup
+
+```ts filename="anchor.test.ts" copy
+import { Keypair } from "@solana/web3.js";
+
+describe("counter", () => {
+  const program = pg.program;
+
+  // Generate a new keypair to use as the address the counter account
+  const counterAccount = new Keypair();
+
+  it("Is initialized!", async () => {});
+
+  it("Increment", async () => {});
+});
+```
+
+### Invoke Initialize Instruction
+
+```ts filename="anchor.test.ts" copy
+it("Is initialized!", async () => {
+  // Invoke the initialize instruction
+  const transactionSignature = await program.methods
+    .initialize()
+    .accounts({
+      counter: counterAccount.publicKey,
+    })
+    .signers([counterAccount]) // include counter keypair as additional signer
+    .rpc({ skipPreflight: true });
+
+  // Fetch the counter account data
+  const accountData = await program.account.counter.fetch(
+    counterAccount.publicKey,
+  );
+
+  console.log(`Transaction Signature: ${transactionSignature}`);
+  console.log(`Count: ${accountData.count}`);
+});
+```
+
+<details>
+<summary>Diff</summary>
+
+```diff
+- it("Is initialized!", async () => {});
+
++ it("Is initialized!", async () => {
++   // Invoke the initialize instruction
++   const transactionSignature = await program.methods
++     .initialize()
++     .accounts({
++       counter: counterAccount.publicKey,
++     })
++     .signers([counterAccount]) // include counter keypair as additional signer
++     .rpc({ skipPreflight: true });
++
++   // Fetch the counter account data
++   const accountData = await program.account.counter.fetch(
++     counterAccount.publicKey,
++   );
++
++   console.log(`Transaction Signature: ${transactionSignature}`);
++   console.log(`Count: ${accountData.count}`);
++ });
+```
+
+</details>
+
+### Invoke Increment Instruction
+
+```ts filename="anchor.test.ts" copy
+it("Increment", async () => {
+  // Invoke the increment instruction
+  const transactionSignature = await program.methods
+    .increment()
+    .accounts({
+      counter: counterAccount.publicKey,
+    })
+    .rpc();
+
+  // Fetch the counter account data
+  const accountData = await program.account.counter.fetch(
+    counterAccount.publicKey,
+  );
+
+  console.log(`Transaction Signature: ${transactionSignature}`);
+  console.log(`Count: ${accountData.count}`);
+});
+```
+
+<details>
+<summary>Diff</summary>
+
+```diff
+- it("Increment", async () => {});
+
++ it("Increment", async () => {
++   // Invoke the increment instruction
++   const transactionSignature = await program.methods
++     .increment()
++     .accounts({
++       counter: counterAccount.publicKey,
++     })
++     .rpc();
++
++   // Fetch the counter account data
++   const accountData = await program.account.counter.fetch(
++     counterAccount.publicKey,
++   );
++
++   console.log(`Transaction Signature: ${transactionSignature}`);
++   console.log(`Count: ${accountData.count}`);
++ });
+```
+
+</details>
+
+### Run Test
+
+- run test
+
+```shell filename="Terminal" copy
+test
+```
+
+<details>
+<summary>Output</summary>
+
+```bash
+Running tests...
+  anchor.test.ts:
+  counter
+    Transaction Signature: 3pVEPm3SEzr64eLqkauMQBLWHQQ5aiZUoNDnwUWfSe1TGeTEP7njy7sGFgnG6mcEWE7BfAnLhSbZRhdCxyHvGDF9
+    Count: 0
+    ✔ Is initialized! (2406ms)
+    Transaction Signature: 56aQPsuWjyDV2vhuvhtfZ5NkbnGmTuiQVQakUEM8mEE3HWGir9rufxKYaN8m6byX2urEwSDdNF8SHDkdzyEVtxc9
+    Count: 1
+    ✔ Increment (897ms)
+  2 passing (3s)
+```
+
+</details>
+
+### Close Program
+
+- run test
+
+```shell filename="Terminal" copy
+solana program close <program_id>
+```
+
+```shell filename="Terminal" copy
+solana program close J2WA6mGXrutGo1ZSRijNWh7tDPmLbZm8UmQfffwVEHhq
+```
+
+<details>
+<summary>Output</summary>
+
+```bash
+$ solana program close J2WA6mGXrutGo1ZSRijNWh7tDPmLbZm8UmQfffwVEHhq
+Loading Solana CLI...
+Success.
+
+
+Closed Program Id J2WA6mGXrutGo1ZSRijNWh7tDPmLbZm8UmQfffwVEHhq, 2.85580632 SOL reclaimed
+```
+
+</details>
+
+</Steps>

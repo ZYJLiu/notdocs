@@ -3,16 +3,17 @@ export default {
     title: "Getting Started",
     // display: "hidden",
   },
-  client: {
-    title: "Client",
+  basics: {
+    title: "Basics",
+  },
+  token: {
+    title: "Tokens",
   },
   program: {
-    title: "Program",
-    // display: "hidden",
+    title: "Anchor Framework",
   },
   frontend: {
     title: "Frontend",
-    // display: "hidden",
   },
   // keeping as reference, to delete
   playground: {

@@ -38,11 +38,14 @@ export default {
       index: {
         title: "Start Here",
       },
-      client: {
-        title: "Client",
+      basics: {
+        title: "Basics",
+      },
+      token: {
+        title: "Tokens",
       },
       program: {
-        title: "Program",
+        title: "Programs",
       },
       frontend: {
         title: "Frontend",
@@ -52,6 +55,7 @@ export default {
   guides: {
     title: "Guides",
     type: "page",
+    display: "hidden",
     theme: {
       sidebar: false,
     },

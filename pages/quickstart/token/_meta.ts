@@ -1,13 +1,4 @@
 export default {
-  "solana-account-model": {
-    title: "Solana Account Model",
-  },
-  "transfer-sol": {
-    title: "Transactions and Instructions",
-  },
-  "token-program": {
-    title: "Tokens on Solana",
-  },
   "mint-account": {
     title: "Create a Mint Account",
   },

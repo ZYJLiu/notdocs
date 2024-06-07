@@ -3,25 +3,21 @@ import { Accordion, Accordions } from "@/components/Accordion";
 import { RemoteCodeblock, permalinkFetch } from "@/components/remote-codeblock";
 
 export const links = [
-  // process_create_associated_token_account()
-  "https://github.com/solana-labs/solana-program-library/blob/b1c44c171bc95e6ee74af12365cb9cbab68be76c/associated-token-account/program/src/processor.rs#L65-L162",
-  // create_pda_account()
-  "https://github.com/solana-labs/solana-program-library/blob/master/associated-token-account/program/src/tools/account.rs#L17-L73",
+  // process_transfer()
+  "https://github.com/solana-labs/solana-program-library/blob/78da1843fc515e4aa9e18ea48b71d2b903e5e6ea/token/program-2022/src/processor.rs#L285-L542",
 ];
 
 export async function getStaticProps() {
   return await permalinkFetch(links);
 }
 
-# Associated Token Account
+# Transfer Tokens
 
-- create an ata token account
-- manually do it
-- use helper to do it
+- show how to transfer tokens
 
-## Create Token Account
+## Transfer Tokens between Token Accounts
 
-https://beta.solpg.io/660ce868cffcf4b13384d011
+https://beta.solpg.io/660ced84cffcf4b13384d013
 
 <Accordions >
 <Accordion title="Final Code">
@@ -36,9 +32,10 @@ import {
 } from "@solana/web3.js";
 import {
   createMint,
-  createAssociatedTokenAccountInstruction,
-  getAssociatedTokenAddressSync,
   TOKEN_2022_PROGRAM_ID,
+  getOrCreateAssociatedTokenAccount,
+  mintTo,
+  createTransferInstruction,
 } from "@solana/spl-token";
 
 const wallet = pg.wallet;
@@ -56,24 +53,56 @@ const mint = await createMint(
   TOKEN_2022_PROGRAM_ID,
 );
 
-// Derive PDA
-const associatedTokenAccountAddress = getAssociatedTokenAddressSync(
+// Create token account for sender
+const sourceTokenAccount = await getOrCreateAssociatedTokenAccount(
+  connection,
+  wallet.keypair, // payer
   mint, // mint address
   wallet.publicKey, // token account owner
-  false, // allow owner off-curve (PDA)
+  false,
+  "confirmed",
+  null,
   TOKEN_2022_PROGRAM_ID,
 );
 
-// Instruction to create associated token account
-const instruction = createAssociatedTokenAccountInstruction(
-  wallet.publicKey, // payer
-  associatedTokenAccountAddress, // token account address
-  wallet.publicKey, // owner
+// Create token account for recipient
+const destinationTokenAccount = await getOrCreateAssociatedTokenAccount(
+  connection,
+  wallet.keypair, // payer
+  mint,
+  new Keypair().publicKey, // token account owner
+  false,
+  "confirmed",
+  null,
+  TOKEN_2022_PROGRAM_ID,
+);
+
+// Mint tokens to sourceTokenAccount
+await mintTo(
+  connection,
+  wallet.keypair, // payer
   mint, // mint address
+  sourceTokenAccount.address, // destination
+  wallet.publicKey, // mint authority
+  100, // amount
+  [],
+  {
+    commitment: "confirmed",
+  },
   TOKEN_2022_PROGRAM_ID,
 );
 
-// Create transaction with instruction
+// Create instruction to transfer tokens
+const instruction = createTransferInstruction(
+  sourceTokenAccount.address, // transfer from
+  destinationTokenAccount.address, // transfer to
+  wallet.publicKey, // source token account owner
+  100, // amount
+  [],
+  TOKEN_2022_PROGRAM_ID,
+);
+
+// Create transaction
 const transaction = new Transaction().add(instruction);
 
 // Sign and send transaction
@@ -81,18 +110,13 @@ const transactionSignature = await sendAndConfirmTransaction(
   connection,
   transaction,
   [
-    wallet.keypair, // payer
+    wallet.keypair, // payer, owner
   ],
 );
 
 console.log(
   "\nTransaction Signature:",
   `https://explorer.solana.com/tx/${transactionSignature}?cluster=devnet`,
-);
-
-console.log(
-  "\nToken Account: ",
-  `https://explorer.solana.com/address/${associatedTokenAccountAddress}?cluster=devnet`,
 );
 ```
 
@@ -116,9 +140,10 @@ import {
 } from "@solana/web3.js";
 import {
   createMint,
-  createAssociatedTokenAccountInstruction,
-  getAssociatedTokenAddressSync,
   TOKEN_2022_PROGRAM_ID,
+  getOrCreateAssociatedTokenAccount,
+  mintTo,
+  createTransferInstruction,
 } from "@solana/spl-token";
 
 const wallet = pg.wallet;
@@ -135,29 +160,57 @@ const mint = await createMint(
   null,
   TOKEN_2022_PROGRAM_ID,
 );
-```
 
-### Derive Associated Token Address
-
-```ts filename="client.ts" copy
-// Derive PDA
-const associatedTokenAccountAddress = getAssociatedTokenAddressSync(
+// Create token account for sender
+const sourceTokenAccount = await getOrCreateAssociatedTokenAccount(
+  connection,
+  wallet.keypair, // payer
   mint, // mint address
   wallet.publicKey, // token account owner
-  false, // allow owner off-curve (PDA)
+  false,
+  "confirmed",
+  null,
+  TOKEN_2022_PROGRAM_ID,
+);
+
+// Create token account for recipient
+const destinationTokenAccount = await getOrCreateAssociatedTokenAccount(
+  connection,
+  wallet.keypair, // payer
+  mint,
+  new Keypair().publicKey, // token account owner
+  false,
+  "confirmed",
+  null,
+  TOKEN_2022_PROGRAM_ID,
+);
+
+// Mint tokens to sourceTokenAccount
+await mintTo(
+  connection,
+  wallet.keypair, // payer
+  mint, // mint address
+  sourceTokenAccount.address, // destination
+  wallet.publicKey, // mint authority
+  100, // amount
+  [],
+  {
+    commitment: "confirmed",
+  },
   TOKEN_2022_PROGRAM_ID,
 );
 ```
 
-### Build Create Associated Token Account Instruction
+### Build Token Transfer Instruction
 
 ```ts filename="client.ts" copy
-// Instruction to create associated token account
-const instruction = createAssociatedTokenAccountInstruction(
-  wallet.publicKey, // payer
-  associatedTokenAccountAddress, // token account address
-  wallet.publicKey, // owner
-  mint, // mint address
+// Create instruction to transfer tokens
+const instruction = createTransferInstruction(
+  sourceTokenAccount.address, // transfer from
+  destinationTokenAccount.address, // transfer to
+  wallet.publicKey, // source token account owner
+  100, // amount
+  [],
   TOKEN_2022_PROGRAM_ID,
 );
 ```
@@ -165,7 +218,6 @@ const instruction = createAssociatedTokenAccountInstruction(
 ### Add Instruction to Transaction
 
 ```ts filename="client.ts" copy
-// Create transaction with instruction
 const transaction = new Transaction().add(instruction);
 ```
 
@@ -176,7 +228,7 @@ const transactionSignature = await sendAndConfirmTransaction(
   connection,
   transaction,
   [
-    wallet.keypair, // payer
+    wallet.keypair, // payer, owner
   ],
 );
 ```
@@ -185,11 +237,6 @@ const transactionSignature = await sendAndConfirmTransaction(
 console.log(
   "\nTransaction Signature:",
   `https://explorer.solana.com/tx/${transactionSignature}?cluster=devnet`,
-);
-
-console.log(
-  "\nToken Account: ",
-  `https://explorer.solana.com/address/${associatedTokenAccountAddress}?cluster=devnet`,
 );
 ```
 
@@ -206,9 +253,7 @@ run
 Running client...
   client.ts:
 
-Transaction Signature: https://explorer.solana.com/tx/hi7bbn11SMX9RRc82QUG72FhCxWRpx8h5U5gxsKPc4LmToYMe5hhcmXi6gyNd81s4a532jWQ51Rq8JXf6aWVL2P?cluster=devnet
-
-Token Account:  https://explorer.solana.com/address/4iCdCKzXrSZTmtZ1FMHvU3owWcy1fwyYHYzw9BnpN745?cluster=devnet
+Transaction Signature: https://explorer.solana.com/tx/4gxedNShayeu9EVp29qBv6kypjCxEX14s46BFE85XTmt3YiPz2uU37Whptt27CY5HvRvRUCBxMXTFSQeeFAKdNy1?cluster=devnet
 ```
 
 </details>
@@ -216,11 +261,9 @@ Token Account:  https://explorer.solana.com/address/4iCdCKzXrSZTmtZ1FMHvU3owWcy1
 </Steps>
 
 <Accordions >
-<Accordion title="Source Code - Create Associated Token Account Instruction">
+<Accordion title="Source Code - Token Transfer Instruction">
 
 <RemoteCodeblock permalink={links[0]} />
-
-<RemoteCodeblock permalink={links[1]} />
 
 </Accordion>
 </Accordions>
